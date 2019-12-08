@@ -1,10 +1,10 @@
-package myMath;
+package Ex1;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.function.Predicate;
 
-import myMath.Monom;
+//import Ex1.Monom;
 /**
  * This class represents a Polynom with add, multiply functionality, it also should support the following:
  * 1. Riemann's Integral: https://en.wikipedia.org/wiki/Riemann_integral
@@ -22,8 +22,8 @@ public class Polynom implements Polynom_able{
 	 * Zero (empty polynom)
 	 */
 	public Polynom() {
-		monomsList = new ArrayList<>();
-		monomsList.add(Monom.ZERO);
+		this.monomsList = new ArrayList<>();
+//		monomsList.add(Monom.ZERO);
 	}
 	
 	/**
@@ -50,8 +50,7 @@ public class Polynom implements Polynom_able{
 		}
 		thisMonom = s.substring(indexStr,s.length());
 		m = new Monom(thisMonom);
-		add(m);
-		
+		add(m);	
 	}
 	
 	@Override
@@ -70,43 +69,45 @@ public class Polynom implements Polynom_able{
 		while (i.hasNext()) {
 			this.add(i.next());
 		}
-		
 	}
 
 	@Override
 	public void add(Monom m1) {
 		Iterator<Monom> i = this.iteretor();
 		while (i.hasNext()) {
-			Monom next = new Monom(i.next());
-			if(Monom.getComp().compare(m1, next)==0){
+			Monom next = i.next();
+			if(Monom.getComp().compare(m1, next) == 0){
 				next.add(m1);
-				this.removeZERO(); 	// if it becomes 0
+				//this.removeZERO(); 	// if it becomes 0
 				return;
 			}
 		}
 		this.monomsList.add(m1);
-		sort(this);
-		
+		sort(this);	
 	}
 
 	@Override
 	public void substract(Polynom_able p1) {
-		Iterator<Monom> i = p1.iteretor();
-		while (i.hasNext()) {
-			Monom m = new Monom(i.next());
-			if (m.get_coefficient()==0) {
-				this.monomsList.remove(m);
-			} else {
-				m.multipy(Monom.MINUS1);
-				this.add(m);         // it sorts
-			}
-		}
+		Polynom thisPolynom = new Polynom(this.toString());
+//		Iterator<Monom> i = p1.iteretor();
+//		while (i.hasNext()) {
+//			Monom m = i.next();
+//			
+//			if (m.get_coefficient()!=0) {
+////				this.monomsList.remove(m);
+////			} else {
+//				m.multipy(Monom.MINUS1);
+//				this.add(m);         // it sorts
+//			}
+//		}
+		p1.multiply(Monom.MINUS1);
+		p1.add(thisPolynom);
 		
 	}
 
 	@Override
 	public void multiply(Polynom_able p1) {
-		Polynom copy = new Polynom();
+		Polynom copy = new Polynom(this.toString()); // save this value (copy??)
 		boolean flag = true;
 		
 		Iterator<Monom> i = p1.iteretor();
@@ -115,38 +116,59 @@ public class Polynom implements Polynom_able{
 				this.multiply(i.next());
 				flag = false;
 			}else {
-				Polynom_able temp = copy.copy();
+//				Polynom_able temp = copy.copy();
+				Polynom_able temp = new Polynom(copy.toString());
 				temp.multiply(i.next());
 				this.add(temp);
 			}
 		}
-		
 	}
 
 	@Override
-	public boolean equals(Polynom_able p1) {
-		Iterator<Monom> j = p1.iteretor();
+	public boolean equals(Object p1) { //need to check if not polynom
+		
+		Iterator<Monom> j = ((Polynom)p1).iteretor();
 		Iterator<Monom> i = this.iteretor();
 		
 		// if the sizes are different
-		int count = 0;
-		while (j.hasNext()) {
+/*		int count = 0;
+		while (j.hasNext()) { 
 			j.next();
 			count++;
 		}
-		if(this.monomsList.size()!=count) {return false;} 
+		if(this.monomsList.size()!=count) {return false;} */
 		
 		while (i.hasNext() && j.hasNext()) {
 			if(!i.next().equals(j.next())) {return false;}
 		}
+		
+		if(i.hasNext() || j.hasNext()) {return false;}
+		
 		return true;
+	}
+	
+	public int polynomSize(Polynom_able p1) {
+		Iterator<Monom> j = p1.iteretor();
+		
+		// if the sizes are different
+		int count = 0;
+		while (j.hasNext()) { 
+			j.next();
+			count++;
+		}
+		return count;
 	}
 
 	@Override
 	public boolean isZero() {
 		Iterator<Monom> i = this.iteretor();
+		if (!i.hasNext()) return true;
 		while (i.hasNext()) {
-			if(i.next().equals(Monom.ZERO)) {
+			/*if(!i.next().equals(Monom.ZERO)) {
+				return false;
+			}*/
+			Monom next = i.next();
+			if(next.get_coefficient() != 0) {
 				return false;
 			}
 		}		
@@ -178,8 +200,12 @@ public class Polynom implements Polynom_able{
 
 	@Override
 	public Polynom_able copy() {
-		Polynom copy = new Polynom();
-		copy.add(this);
+		Polynom copy = new Polynom(this.toString());
+//		Iterator<Monom> i = this.iteretor();
+//		while (i.hasNext()) {
+//			copy.add(i.next());	
+//		}
+//		copy.add(this);
 		return copy;
 	}
 
@@ -199,7 +225,6 @@ public class Polynom implements Polynom_able{
 		if (x1 == x0) {
 			return 0; 
 		}
-		
 		double max = Math.max(x1, x0);
 		double min = Math.min(x1, x0);
 		int numOfSquares = (int)((max-min)/eps);		
@@ -209,7 +234,6 @@ public class Polynom implements Polynom_able{
 			min = min+eps;
 		}
 		return sum;
-		
 	}
 
 	@Override
@@ -228,8 +252,8 @@ public class Polynom implements Polynom_able{
 	public String toString() {
 		String ans = "";
 		boolean flag = false;
-		Iterator<Monom> i = this.iteretor();
 		
+		Iterator<Monom> i = this.iteretor();
 		while (i.hasNext()) {
 			Monom m = new Monom(i.next()); 
 			if(m.equals(Monom.ZERO)) {
@@ -249,20 +273,26 @@ public class Polynom implements Polynom_able{
 	public void sort(Polynom_able p1) {
 		 // sorting by power
 		this.monomsList.sort(Monom.getComp());
-		this.removeZERO();
-		
+		//this.removeZERO();
+	}
+
+	
+	@Override
+	public function initFromString(String s) {
+		function newPolynom = new Polynom(s);
+		return newPolynom;
 	}
 	
-	public void removeZERO () {
+/*	public void removeZERO () {
 		Iterator<Monom> i = this.iteretor();
 		while (i.hasNext()) {
-			Monom next = new Monom(i.next());
-			if(next.get_coefficient()==0){
-				Polynom_able temp = new  Polynom (next.toString());
+			Monom next = i.next();
+			if(next.get_coefficient() == 0){
+				Polynom_able temp = new Polynom (next.toString());
 				this.substract(temp);
+				this.monomsList.remove(next);
 			}
-		}
-		
-	}
+		}	
+	}*/
 	
 }

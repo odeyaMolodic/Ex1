@@ -1,5 +1,4 @@
-
-package myMath;
+package Ex1;
 
 import java.util.Comparator;
 
@@ -30,6 +29,7 @@ public class Monom implements function{
 	public int get_power() {
 		return this._power;
 	}
+	
 	/** 
 	 * this method returns the derivative monom of this.
 	 * @return
@@ -38,12 +38,14 @@ public class Monom implements function{
 		if(this.get_power()==0) {return getNewZeroMonom();}
 		return new Monom(this.get_coefficient()*this.get_power(), this.get_power()-1);
 	}
+	
 	public double f(double x) {
 		double ans=0;
 		double p = this.get_power();
 		ans = this.get_coefficient()*Math.pow(x, p);
 		return ans;
 	} 
+	
 	public boolean isZero() {return this.get_coefficient() == 0;}
 	
 	// ***************** add your code below **********************
@@ -70,21 +72,18 @@ public class Monom implements function{
 			if(indexOfX>i) {
 				 this.set_coefficient(sign*Double.parseDouble(s.substring(i, indexOfX)));
 			}
-		}else {
+		}else { //if not contain x 
 			this.set_power(0);
 			this.set_coefficient(sign*Double.parseDouble(s.substring(i, s.length())));
 		}
 	}
 	
 	public void add(Monom m) {
-		//try {
-		if (getComp().compare(this, m)==0) {
+		if (getComp().compare(this, m) == 0) {
 			this.set_coefficient(this._coefficient + m._coefficient);
 		} else {
 			throw new RuntimeException("ERR you can only add a monom with the same power: "+this.get_power());
-			//System.out.println ("ERR you can only add a monom with the same power: "+this.get_power()+"!= "+m.get_power());
 		}
-		//}catch (Exception e){}
 	}
 	
 	public void multipy(Monom d) {
@@ -122,13 +121,15 @@ public class Monom implements function{
 	}
 	
 	public boolean equals (Monom m) {
-		if (this.get_coefficient() != m.get_coefficient()) {
+		double difference = this.get_coefficient() - m.get_coefficient();
+//		if (this.get_coefficient() != m.get_coefficient()) {
+		if(Math.abs(difference)>Monom.EPSILON) {
 			return false;
 		}
 		if (this.get_coefficient() == 0) { return true; }
 		if (getComp().compare(this, m) == 0) { 
 			return true; 
-		} else { return false; }
+		} else { return false; } //throw error?
 	}
 	
 
@@ -144,6 +145,19 @@ public class Monom implements function{
 	private static Monom getNewZeroMonom() {return new Monom(ZERO);}
 	private double _coefficient; 
 	private int _power;
+	
+	
+	//need to check if not monom
+	@Override
+	public function initFromString(String s) {
+		function newPolynom = new Monom(s);
+		return newPolynom;
+	}
+	@Override
+	public function copy() { 
+		Monom copy = new Monom(this.toString());
+		return copy;
+	}
 	
 	
 }
