@@ -34,7 +34,7 @@ public class Monom implements function{
 	 * this method returns the derivative monom of this.
 	 * @return
 	 */
-	public Monom derivative() { //נגזרת
+	public Monom derivative() { 
 		if(this.get_power()==0) {return getNewZeroMonom();}
 		return new Monom(this.get_coefficient()*this.get_power(), this.get_power()-1);
 	}
@@ -50,6 +50,7 @@ public class Monom implements function{
 	
 	// ***************** add your code below **********************
 	public Monom(String s) {
+		s=s.replaceAll(" ", "");
 		if (s=="0") {
 			this.set_coefficient(0);
 			return;
@@ -62,19 +63,24 @@ public class Monom implements function{
 		} else { this.set_coefficient(1); }
 		double sign = this.get_coefficient();
 		
-		if (s.contains("x")) {
-			int indexOfX = s.indexOf('x');
-			if (s.contains("^")) {
-				this.set_power(Integer.parseInt(s.substring(indexOfX+2, s.length())));
-			}else {
-				this.set_power(1);
+		try {
+			if (s.contains("x")) {
+				int indexOfX = s.indexOf('x');
+				if(indexOfX>i) {
+					 this.set_coefficient(sign*Double.parseDouble(s.substring(i, indexOfX)));
+				}
+				if (s.contains("^")) {
+					this.set_power(Integer.parseInt(s.substring(indexOfX+2, s.length())));
+				}else {
+					this.set_power(1);
+				}
+			}else { //if not contain x 
+				this.set_power(0);
+				this.set_coefficient(sign*Double.parseDouble(s.substring(i, s.length())));
 			}
-			if(indexOfX>i) {
-				 this.set_coefficient(sign*Double.parseDouble(s.substring(i, indexOfX)));
-			}
-		}else { //if not contain x 
-			this.set_power(0);
-			this.set_coefficient(sign*Double.parseDouble(s.substring(i, s.length())));
+		}catch (NumberFormatException e) {
+			e.printStackTrace();
+			System.out.println("Error, worng format");
 		}
 	}
 	
@@ -122,14 +128,13 @@ public class Monom implements function{
 	
 	public boolean equals (Monom m) {
 		double difference = this.get_coefficient() - m.get_coefficient();
-//		if (this.get_coefficient() != m.get_coefficient()) {
 		if(Math.abs(difference)>Monom.EPSILON) {
 			return false;
 		}
 		if (this.get_coefficient() == 0) { return true; }
 		if (getComp().compare(this, m) == 0) { 
 			return true; 
-		} else { return false; } //throw error?
+		} else { return false; }
 	}
 	
 
@@ -147,7 +152,6 @@ public class Monom implements function{
 	private int _power;
 	
 	
-	//need to check if not monom
 	@Override
 	public function initFromString(String s) {
 		function newPolynom = new Monom(s);

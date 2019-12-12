@@ -23,7 +23,7 @@ public class Polynom implements Polynom_able{
 	 */
 	public Polynom() {
 		this.monomsList = new ArrayList<>();
-//		monomsList.add(Monom.ZERO);
+		
 	}
 	
 	/**
@@ -32,24 +32,35 @@ public class Polynom implements Polynom_able{
 	 * @param s: is a string represents a Polynom
 	 */
 	public Polynom(String s) {
+		s=s.replaceAll(" ", "");
 		monomsList = new ArrayList<>();
 		if(s=="" || s=="0") {
 			monomsList.add(Monom.ZERO);
 			return;
 		}
-		String thisMonom = "";
+		String monomStr = "";
 		Monom m;
 		int indexStr = 0;
 		for (int i=1;i<s.length();i++) {
 			if (s.charAt(i)=='+' || s.charAt(i)=='-') {
-				thisMonom = s.substring(indexStr,i);
-				m = new Monom(thisMonom);
+				try {
+				monomStr = s.substring(indexStr,i); 
+				}catch (IndexOutOfBoundsException e) {
+					e.printStackTrace();
+					System.out.println("Error, worng format"); //if indexStr>i
+				}
+				m = new Monom(monomStr);
 				add(m);
 				indexStr = i;
 			}
 		}
-		thisMonom = s.substring(indexStr,s.length());
-		m = new Monom(thisMonom);
+		try {
+		monomStr = s.substring(indexStr,s.length());
+		}catch (IndexOutOfBoundsException e) {
+			e.printStackTrace();
+			System.out.println("Error, worng format");
+		}
+		m = new Monom(monomStr);
 		add(m);	
 	}
 	
@@ -73,33 +84,22 @@ public class Polynom implements Polynom_able{
 
 	@Override
 	public void add(Monom m1) {
+		Monom temp = new Monom(m1);
 		Iterator<Monom> i = this.iteretor();
 		while (i.hasNext()) {
 			Monom next = i.next();
-			if(Monom.getComp().compare(m1, next) == 0){
-				next.add(m1);
-				//this.removeZERO(); 	// if it becomes 0
+			if(Monom.getComp().compare(temp, next) == 0){
+				next.add(temp);
 				return;
 			}
 		}
-		this.monomsList.add(m1);
+		this.monomsList.add(temp);
 		sort(this);	
 	}
 
 	@Override
 	public void substract(Polynom_able p1) {
 		Polynom thisPolynom = new Polynom(this.toString());
-//		Iterator<Monom> i = p1.iteretor();
-//		while (i.hasNext()) {
-//			Monom m = i.next();
-//			
-//			if (m.get_coefficient()!=0) {
-////				this.monomsList.remove(m);
-////			} else {
-//				m.multipy(Monom.MINUS1);
-//				this.add(m);         // it sorts
-//			}
-//		}
 		p1.multiply(Monom.MINUS1);
 		p1.add(thisPolynom);
 		
@@ -107,7 +107,7 @@ public class Polynom implements Polynom_able{
 
 	@Override
 	public void multiply(Polynom_able p1) {
-		Polynom copy = new Polynom(this.toString()); // save this value (copy??)
+		Polynom copy = new Polynom(this.toString()); 
 		boolean flag = true;
 		
 		Iterator<Monom> i = p1.iteretor();
@@ -116,8 +116,7 @@ public class Polynom implements Polynom_able{
 				this.multiply(i.next());
 				flag = false;
 			}else {
-//				Polynom_able temp = copy.copy();
-				Polynom_able temp = new Polynom(copy.toString());
+				Polynom_able temp = copy.copy();
 				temp.multiply(i.next());
 				this.add(temp);
 			}
@@ -125,18 +124,18 @@ public class Polynom implements Polynom_able{
 	}
 
 	@Override
-	public boolean equals(Object p1) { //need to check if not polynom
+	public boolean equals(Object p1) {
+		if(p1 instanceof Monom)
+			return equals(new Polynom(p1.toString()));
+		
+		if(!(p1 instanceof Polynom))
+			throw new RuntimeException("Error, unknown object");
 		
 		Iterator<Monom> j = ((Polynom)p1).iteretor();
 		Iterator<Monom> i = this.iteretor();
 		
 		// if the sizes are different
-/*		int count = 0;
-		while (j.hasNext()) { 
-			j.next();
-			count++;
-		}
-		if(this.monomsList.size()!=count) {return false;} */
+		if(this.monomsList.size()!=polynomSize((Polynom)p1)) {return false;} 
 		
 		while (i.hasNext() && j.hasNext()) {
 			if(!i.next().equals(j.next())) {return false;}
@@ -150,7 +149,6 @@ public class Polynom implements Polynom_able{
 	public int polynomSize(Polynom_able p1) {
 		Iterator<Monom> j = p1.iteretor();
 		
-		// if the sizes are different
 		int count = 0;
 		while (j.hasNext()) { 
 			j.next();
@@ -164,9 +162,6 @@ public class Polynom implements Polynom_able{
 		Iterator<Monom> i = this.iteretor();
 		if (!i.hasNext()) return true;
 		while (i.hasNext()) {
-			/*if(!i.next().equals(Monom.ZERO)) {
-				return false;
-			}*/
 			Monom next = i.next();
 			if(next.get_coefficient() != 0) {
 				return false;
@@ -201,11 +196,6 @@ public class Polynom implements Polynom_able{
 	@Override
 	public Polynom_able copy() {
 		Polynom copy = new Polynom(this.toString());
-//		Iterator<Monom> i = this.iteretor();
-//		while (i.hasNext()) {
-//			copy.add(i.next());	
-//		}
-//		copy.add(this);
 		return copy;
 	}
 
@@ -230,7 +220,9 @@ public class Polynom implements Polynom_able{
 		int numOfSquares = (int)((max-min)/eps);		
 		double sum = 0;
 		for (int i = 0; i < numOfSquares; i++) {
-			sum = sum+(eps*f(min));
+			if(this.f(min)>0) {
+				sum = sum+(eps*this.f(min));
+			}
 			min = min+eps;
 		}
 		return sum;
@@ -243,9 +235,10 @@ public class Polynom implements Polynom_able{
 	
 	@Override
 	public void multiply(Monom m1) {
+		Monom temp = new Monom(m1);
 		Iterator<Monom> i = this.iteretor();
 		while (i.hasNext()) {
-			i.next().multipy(m1);
+			i.next().multipy(temp);
 		}
 	}
 	
@@ -273,7 +266,7 @@ public class Polynom implements Polynom_able{
 	public void sort(Polynom_able p1) {
 		 // sorting by power
 		this.monomsList.sort(Monom.getComp());
-		//this.removeZERO();
+		
 	}
 
 	
@@ -283,16 +276,5 @@ public class Polynom implements Polynom_able{
 		return newPolynom;
 	}
 	
-/*	public void removeZERO () {
-		Iterator<Monom> i = this.iteretor();
-		while (i.hasNext()) {
-			Monom next = i.next();
-			if(next.get_coefficient() == 0){
-				Polynom_able temp = new Polynom (next.toString());
-				this.substract(temp);
-				this.monomsList.remove(next);
-			}
-		}	
-	}*/
 	
 }
